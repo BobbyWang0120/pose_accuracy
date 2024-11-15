@@ -20,6 +20,29 @@ class AngleCalculator:
 
         return angle
 
+    def calculate_face_direction(self, landmarks):
+        """Calculate face direction angle relative to camera"""
+        if not landmarks:
+            return None
+
+        # 获取面部关键点
+        nose = landmarks[self.mp_pose.PoseLandmark.NOSE.value]
+        left_eye = landmarks[self.mp_pose.PoseLandmark.LEFT_EYE.value]
+        right_eye = landmarks[self.mp_pose.PoseLandmark.RIGHT_EYE.value]
+
+        # 计算眼睛之间的距离（在2D图像上的投影）
+        eye_distance = np.sqrt((right_eye.x - left_eye.x) ** 2 + (right_eye.y - left_eye.y) ** 2)
+
+        # 计算鼻子相对于眼睛中点的位置
+        eye_center_x = (left_eye.x + right_eye.x) / 2
+        eye_center_y = (left_eye.y + right_eye.y) / 2
+
+        # 计算朝向角度
+        # 使用眼睛距离作为参考来估计深度
+        face_angle = np.arctan2(nose.x - eye_center_x, eye_distance) * 180 / np.pi
+
+        return face_angle
+
     def get_fitness_angles(self, landmarks):
         """Get key angles for fitness analysis"""
         if not landmarks:
@@ -50,6 +73,8 @@ class AngleCalculator:
                 landmarks[self.mp_pose.PoseLandmark.LEFT_KNEE.value],
                 landmarks[self.mp_pose.PoseLandmark.LEFT_ANKLE.value],
             ),
+            # Add face direction
+            "Face Direction": self.calculate_face_direction(landmarks),
         }
 
         return angles

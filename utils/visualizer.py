@@ -21,13 +21,25 @@ class PoseVisualizer:
         """在图像上显示角度信息"""
         y_pos = 30
         for joint, angle in angles.items():
+            if angle is None:
+                continue
+
+            if joint == "Face Direction":
+                # 特别处理面部朝向的显示
+                direction = "Left" if angle > 5 else "Right" if angle < -5 else "Center"
+                text = f"Face Direction: {direction} ({angle:.1f} deg)"
+                color = (0, 255, 0) if abs(angle) < 5 else (0, 165, 255)
+            else:
+                text = f"{joint}: {angle:.1f} deg"
+                color = (255, 255, 255)
+
             cv2.putText(
                 image,
-                f"{joint}: {angle:.1f} deg",  # 使用 'deg' 替代 '°' 符号
+                text,
                 (10, y_pos),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.7,
-                (255, 255, 255),
+                color,
                 2,
                 cv2.LINE_AA,
             )
